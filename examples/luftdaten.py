@@ -98,20 +98,6 @@ def check_wifi():
 # Display Raspberry Pi serial and Wi-Fi status on LCD
 def display_status(values):
     # wifi_status = "connected" if check_wifi() else "disconnected"
-    # text_colour = (255, 255, 255)
-    # back_colour = (0, 170, 170) if check_wifi() else (85, 15, 15)
-    # id = get_serial_number()
-    # message = "{}\nWi-Fi: {}".format(id, wifi_status)
-    # img = Image.new('RGB', (WIDTH, HEIGHT), color=(0, 0, 0))
-    # draw = ImageDraw.Draw(img)
-    # size_x, size_y = draw.textsize(message, font)
-    # x = (WIDTH - size_x) / 2
-    # y = (HEIGHT / 2) - (size_y / 2)
-    # draw.rectangle((0, 0, 160, 80), back_colour)
-    # draw.text((x, y), message, font=font, fill=text_colour)
-    # disp.display(img)
-
-    # wifi_status = "connected" if check_wifi() else "disconnected"
     text_colour = (255, 255, 255)
     back_colour = (0, 170, 170) if values["Data2 "] <= 10 else (85, 15, 15)
     # id = get_serial_number()
@@ -125,49 +111,6 @@ def display_status(values):
     draw.rectangle((0, 0, 160, 80), back_colour)
     draw.text((x, y), message, font=font, fill=text_colour)
     disp.display(img)
-
-
-def send_to_luftdaten(values, id):
-    pm_values = dict(i for i in values.items() if i[0].startswith("P"))
-    temp_values = dict(i for i in values.items() if not i[0].startswith("P"))
-
-    pm_values_json = [{"value_type": key, "value": val}
-                      for key, val in pm_values.items()]
-    temp_values_json = [{"value_type": key, "value": val}
-                        for key, val in temp_values.items()]
-
-    resp_1 = requests.post(
-        "https://api.luftdaten.info/v1/push-sensor-data/",
-        json={
-            "software_version": "enviro-plus 0.0.1",
-            "sensordatavalues": pm_values_json
-        },
-        headers={
-            "X-PIN": "1",
-            "X-Sensor": id,
-            "Content-Type": "application/json",
-            "cache-control": "no-cache"
-        }
-    )
-
-    resp_2 = requests.post(
-        "https://api.luftdaten.info/v1/push-sensor-data/",
-        json={
-            "software_version": "enviro-plus 0.0.1",
-            "sensordatavalues": temp_values_json
-        },
-        headers={
-            "X-PIN": "11",
-            "X-Sensor": id,
-            "Content-Type": "application/json",
-            "cache-control": "no-cache"
-        }
-    )
-
-    if resp_1.ok and resp_2.ok:
-        return True
-    else:
-        return False
 
 
 # Compensation factor for temperature
@@ -198,7 +141,8 @@ while True:
         values = read_values()
         print(values)
         if time_since_update > 145:
-            resp = send_to_luftdaten(values, id)
+            # resp = send_to_luftdaten(values, id)
+            display_status
             update_time = time.time()
             print("Response: {}\n".format("ok" if resp else "failed"))
         display_status(values)
